@@ -1,35 +1,12 @@
-import java.io.*;
-import java.util.*;
+import java.util.Scanner;
 
-class Book implements Serializable {
-    private int id;
-    private String title;
-    private String author;
-    private int year;
-
-    public Book(int id, String title, String author, int year) {
-        this.id = id;
-        this.title = title;
-        this.author = author;
-        this.year = year;
-    }
-
-    public int getId() { return id; }
-    public String getTitle() { return title; }
-
-    @Override
-    public String toString() {
-        return "[" + id + "] " + title + " by " + author + " (" + year + ")";
-    }
-}
 
 public class LibraryManagement {
-    private static ArrayList<Book> books = new ArrayList<>();
-    private static final String FILE_NAME = "library.dat";
 
     public static void main(String[] args) {
-        loadBooks();
+
         Scanner sc = new Scanner(System.in);
+        Book book = new Book();
         int choice;
 
         do {
@@ -39,81 +16,133 @@ public class LibraryManagement {
             System.out.println("3. Search Book");
             System.out.println("4. Remove Book");
             System.out.println("5. Exit");
+
             System.out.print("Enter choice: ");
             choice = sc.nextInt();
-            sc.nextLine(); // clear buffer
+            sc.nextLine();
 
             switch (choice) {
-                case 1 -> addBook(sc);
-                case 2 -> viewBooks();
-                case 3 -> searchBook(sc);
-                case 4 -> removeBook(sc);
-                case 5 -> saveBooks();
-                default -> System.out.println("Invalid choice.");
+                case 1:
+                    book.addBook(sc);
+                    break;
+                case 2:
+                    book.viewBooks();
+                    break;
+                case 3:
+                    book.searchBook(sc);
+                    break;
+                case 4:
+                    book.removeBook(sc);
+                    break;
+                case 5:
+                    System.out.println("Thank you!");
+                    break;
+                default:
+                    System.out.println("Invalid choice!");
             }
+
         } while (choice != 5);
 
         sc.close();
     }
+}
 
-    private static void addBook(Scanner sc) {
+/* Parent Class */
+class Library {
+    int id;
+    String title;
+    String author;
+    int year;
+
+    void setDetails(int i, String t, String a, int y) {
+        id = i;
+        title = t;
+        author = a;
+        year = y;
+    }
+
+    void showDetails() {
+        System.out.println("[" + id + "] " + title + " by " + author + " (" + year + ")");
+    }
+}
+
+/* Child Class */
+class Book extends Library {
+
+    Library[] books = new Library[100];
+    int count = 0;
+
+    void addBook(Scanner sc) {
+        if (count >= 100) {
+            System.out.println("Library is full!");
+            return;
+        }
+
+        Library b = new Library();
+
         System.out.print("Enter ID: ");
         int id = sc.nextInt();
         sc.nextLine();
-        System.out.print("Enter title: ");
+
+        System.out.print("Enter Title: ");
         String title = sc.nextLine();
-        System.out.print("Enter author: ");
+
+        System.out.print("Enter Author: ");
         String author = sc.nextLine();
-        System.out.print("Enter year: ");
+
+        System.out.print("Enter Year: ");
         int year = sc.nextInt();
 
-        books.add(new Book(id, title, author, year));
+        b.setDetails(id, title, author, year);
+        books[count] = b;
+        count++;
+
         System.out.println("Book added successfully!");
     }
 
-    private static void viewBooks() {
-        if (books.isEmpty()) {
+    void viewBooks() {
+        if (count == 0) {
             System.out.println("No books available.");
-        } else {
-            books.forEach(System.out::println);
+            return;
+        }
+
+        for (int i = 0; i < count; i++) {
+            books[i].showDetails();
         }
     }
 
-    private static void searchBook(Scanner sc) {
+    void searchBook(Scanner sc) {
         System.out.print("Enter title to search: ");
-        String searchTitle = sc.nextLine().toLowerCase();
+        String search = sc.nextLine().toLowerCase();
         boolean found = false;
-        for (Book b : books) {
-            if (b.getTitle().toLowerCase().contains(searchTitle)) {
-                System.out.println(b);
+
+        for (int i = 0; i < count; i++) {
+            if (books[i].title.toLowerCase().contains(search)) {
+                books[i].showDetails();
                 found = true;
             }
         }
-        if (!found) System.out.println("No matching books found.");
+
+        if (!found) {
+            System.out.println("Book not found.");
+        }
     }
 
-    private static void removeBook(Scanner sc) {
+    void removeBook(Scanner sc) {
         System.out.print("Enter book ID to remove: ");
         int id = sc.nextInt();
-        books.removeIf(b -> b.getId() == id);
-        System.out.println("Book removed if it existed.");
-    }
 
-    @SuppressWarnings("unchecked")
-    private static void loadBooks() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_NAME))) {
-            books = (ArrayList<Book>) ois.readObject();
-        } catch (Exception e) {
-            // Ignore if file not found or empty
+        for (int i = 0; i < count; i++) {
+            if (books[i].id == id) {
+                for (int j = i; j < count - 1; j++) {
+                    books[j] = books[j + 1];
+                }
+                count--;
+                System.out.println("Book removed successfully.");
+                return;
+            }
         }
-    }
 
-    private static void saveBooks() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
-            oos.writeObject(books);
-            System.out.println("Books saved successfully.");
-        } catch (IOException e) {
-            System.out.println("Error saving books: " + e.getMessage());
-        }
+        System.out.println("Book not found.");
     }
 }
