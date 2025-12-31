@@ -43,11 +43,10 @@ public class LibraryManagement {
 
         } while (choice != 5);
 
-        sc.close();
+       
     }
 }
 
-/* Parent Class */
 class Library {
     int id;
     String title;
@@ -66,7 +65,7 @@ class Library {
     }
 }
 
-/* Child Class */
+
 class Book extends Library {
 
     Library[] books = new Library[100];
@@ -146,3 +145,4 @@ class Book extends Library {
         System.out.println("Book not found.");
     }
 }
+
